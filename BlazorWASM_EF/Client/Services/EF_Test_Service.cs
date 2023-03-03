@@ -61,6 +61,15 @@ namespace BlazorWASM_EF.Client.Services
             return _httpResponseMessage.StatusCode;
         }
 
+        public async Task<HttpStatusCode> Delete(int id)
+        {
+            _httpResponseMessage = new HttpResponseMessage();
+
+            _httpResponseMessage = await _httpClient.DeleteAsync($"api/testdatamodel/{id}");
+
+            return _httpResponseMessage.StatusCode;
+        }
+
         public EF_Test_Service(HttpClient httpClient)
         {
             _httpClient = httpClient;

@@ -12,5 +12,6 @@ namespace BlazorWASM_EF.Client.Contracts
         Task<TestDataModel> Get(int id);
         Task<HttpStatusCode> Put(TestDataModel data);
         Task<HttpStatusCode> Post(TestDataModel data);
+        Task<HttpStatusCode> Delete(int id);
     }
 }
