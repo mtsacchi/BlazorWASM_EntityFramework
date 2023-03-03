@@ -1,0 +1,146 @@
+﻿@page "/ef_test"
+@using System.Net;
+@inject IEF_Test_Service Service
+@inject ILogger<EF_Test> logger
+
+<h1>Entity Framework Test</h1>
+
+<div class="container">
+    <div class="row">
+        <h5>Add new record or edit selected record:</h5>
+    </div>
+    <div class="row" style="margin-bottom: 16px">
+        <div class="col-auto">
+            <label for="id">Id</label>
+            <input class="form-control" type="number" id="id" name="id" @bind-value=record.Id disabled />
+        </div>
+        <div class="col-auto">
+            <label for="newName">Name (max length 10)</label>
+            <input class="form-control" type="text" id="newName" name="newName" maxlength="10" @bind-value=record.Name />
+        </div>
+        <div class="col-auto">
+            <label for="newValue">Value (max length 10)</label>
+            <input class="form-control" type="text" id="newValue" name="newValue" maxlength="10" @bind-value=record.Value />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="NewRecord">New</button>
+            <button class="btn btn-primary" @onclick="SaveRecord">Save</button>
+        </div>
+    </div>
+    <br/>
+    <div class="row">
+        <h5>List of DB records</h5>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (recordsList == null || recordsList.Count == 0)
+                {
+                    <tr>
+                        <td> - </td>
+                        <td> - </td>
+                        <td> - </td>
+                        <td> - </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (TestDataModel line in recordsList)
+                    {
+                        <tr>
+                            <td>@line.Id</td>
+                            <td>@line.Name</td>
+                            <td>@line.Value</td>
+                            <td><button class="btn btn-secondary" @onclick="() => SelectRecord(line.Id)">Select</button></td>
+                        </tr>
+                    }                        
+                }                    
+            </tbody>
+        </table>
+        <div class="row">
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="GetTableData">Refresh</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    private TestDataModel record;
+    private List<TestDataModel> recordsList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        record = Factory.CreateNewTestDataLine();
+        recordsList = Factory.CreateNewTestDataList();
+
+        await GetTableData();
+    }
+
+    private async Task GetTableData()
+    {
+        var Response = await Service.Get();
+        recordsList = Response ?? Factory.CreateNewTestDataList();
+        StateHasChanged();
+    }
+
+    private async Task GetLineData(int id)
+    {
+        var Response = await Service.Get(id);
+        record = Response ?? Factory.CreateNewTestDataLine();
+        StateHasChanged();
+    }
+
+    private async Task PutLineData(TestDataModel data)
+    {
+        var Response = await Service.Put(data);
+        if (Response == HttpStatusCode.OK)
+            await GetTableData();
+        else
+            logger.LogError($"Error in PUT operation. StatusCode {Response}");
+    }
+
+    private async Task PostLineData(TestDataModel data)
+    {
+        var Response = await Service.Post(data);
+        if (Response == HttpStatusCode.Created)
+            await GetTableData();
+        else
+            logger.LogError($"Error in POST operation. StatusCode {Response}");
+    }
+
+    private async Task SelectRecord(int id)
+    {
+        if (id > 0)
+            await GetLineData(id);
+        else
+            NewRecord();
+    }
+
+    private void NewRecord()
+    {
+        record.Id = 0;
+        record.Name = "";
+        record.Value = "";
+        StateHasChanged();
+    }
+
+    private async void SaveRecord()
+    {
+        if (record.Id == 0)
+            await PostLineData(record);
+        else if (record.Id > 0)
+            await PutLineData(record);
+    }
+
+}
