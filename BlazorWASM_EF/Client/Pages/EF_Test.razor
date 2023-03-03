@@ -59,7 +59,10 @@
                             <td>@line.Id</td>
                             <td>@line.Name</td>
                             <td>@line.Value</td>
-                            <td><button class="btn btn-secondary" @onclick="() => SelectRecord(line.Id)">Select</button></td>
+                            <td>
+                                <button class="btn btn-secondary" @onclick="() => SelectRecord(line.Id)">Select</button>
+                                <button class="btn btn-secondary" @onclick="() => DeleteRecord(line.Id)">Delete</button>
+                            </td>
                         </tr>
                     }                        
                 }                    
@@ -101,6 +104,15 @@
         StateHasChanged();
     }
 
+    private async Task DeleteLineData(int id)
+    {
+        var Response = await Service.Delete(id);
+        if (Response == HttpStatusCode.NoContent)
+            await GetTableData();
+        else
+            logger.LogError($"Error in DELETE operation. StatusCode {Response}");
+    }
+
     private async Task PutLineData(TestDataModel data)
     {
         var Response = await Service.Put(data);
@@ -123,8 +135,12 @@
     {
         if (id > 0)
             await GetLineData(id);
-        else
-            NewRecord();
+    }
+
+    private async Task DeleteRecord(int id)
+    {
+        if (id > 0)
+            await DeleteLineData(id);
     }
 
     private void NewRecord()
