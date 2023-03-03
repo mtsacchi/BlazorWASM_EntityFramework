@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.ResponseCompression;
+﻿using BlazorWASM_EF.Server.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddDbContext<MyPublicGitHubContext>(options =>
+    options.UseMySQL(builder.Configuration.GetConnectionString("MyPublicGitHubContext") ?? throw new InvalidOperationException("Connection string 'MyPublicGitHubContext' not found.")));
 
 var app = builder.Build();
 
